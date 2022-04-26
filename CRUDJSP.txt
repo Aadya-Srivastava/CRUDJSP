@@ -1,0 +1,426 @@
+                   CRUD-OPERATION
+
+Package com.test.bean;
+public class UserBean {
+
+    private int id;
+    private String name, password, email, Gender, country;
+    private float salary;
+    
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+ public void setPassword(String password) {
+        this.password = password;
+    }
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    public String getGender() {
+        return Gender;
+    }
+    public void setGender(String Gender) {
+        this.Gender = Gender;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+    public void setCountry(String country) {
+        this.country = country;
+    }
+    public float getSalary() {
+        return salary;
+    }
+
+    public void setSalary(float salary) {
+        this.salary = salary;
+    }
+}
+
+======================================================================================================
+
+package com.test.dao;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.test.bean.UserBean;
+public class UserDAO {
+public static Connection getConnection() {        Connection con = null;
+        try {
+   Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/empmanagement", "root", "Deepu@123");
+        } catch (Exception e) {
+            System.out.println(e);
+        }         return con;     }
+    public static int save(UserBean u) {
+        int status = 0;
+        try {
+Connection con = getConnection();
+PreparedStatement ps = con.prepareStatement("insert into Employees(name,password,email,gender,country,salary) values(?,?,?,?,?,?)");
+ps.setString(1, u.getName());
+ps.setString(2, u.getPassword());
+ps.setString(3, u.getEmail());
+ps.setString(4, u.getGender());
+ps.setString(5, u.getCountry());
+ps.setFloat(6,  u.getSalary());
+status = ps.executeUpdate();
+} catch (Exception e) {
+System.out.println(e);
+}
+return status;
+}
+
+public static int update(UserBean u) {
+int status = 0;
+try {
+Connection con = getConnection();
+PreparedStatement ps = con.prepareStatement("update Employees set name=?,password=?,email=?,gender=?,country=?,salary=? where id=?");
+ps.setString(1, u.getName());
+ps.setString(2, u.getPassword());
+ps.setString(3, u.getEmail());
+ps.setString(4, u.getGender());
+ps.setString(5, u.getCountry());         
+ps.setFloat(6, u.getSalary());
+ps.setInt(7, u.getId());
+status = ps.executeUpdate();
+} catch (Exception e) {
+System.out.println(e);
+}
+return status;
+}
+public static int delete(UserBean u) {
+    int status = 0;
+    try {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement("delete from Employees where id=?");
+        ps.setInt(1, u.getId());
+        status = ps.executeUpdate();
+    } catch (Exception e) {
+        System.out.println(e);
+    }
+    return status;
+}
+public static List<UserBean> getAllRecords() {
+    List<UserBean> list = new ArrayList<UserBean>();
+    try {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement("select * from Employees");
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            UserBean u = new UserBean();
+            u.setId(rs.getInt("id"));
+            u.setName(rs.getString("name"));
+            u.setPassword(rs.getString("password"));
+            u.setEmail(rs.getString("email"));
+            u.setGender(rs.getString("gender"));
+            u.setCountry(rs.getString("country"));
+            u.setSalary(rs.getFloat("salary"));
+            list.add(u);
+        }
+    } catch (Exception e) {
+        System.out.println(e);   }
+    return list;
+}
+public static UserBean getRecordById(int id) {
+    UserBean u = null;
+    try {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement("select * from Employees where id=?");
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            u = new UserBean();
+            u.setId(rs.getInt("id"));
+            u.setName(rs.getString("name"));
+            u.setPassword(rs.getString("password"));
+            u.setEmail(rs.getString("email"));
+            u.setGender(rs.getString("gender"));
+            u.setCountry(rs.getString("country"));
+            u.setSalary(rs.getFloat("salary"));
+        }
+    } catch (Exception e) {
+        System.out.println(e);
+    }
+    return u;
+}
+public static List<UserBean> getRecords(int start, int total) {
+    List<UserBean> list = new ArrayList<UserBean>();
+    try {
+        Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement(
+                "select * from Employees limit " + (start - 1) + "," + total);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            UserBean e = new UserBean();
+            e.setId(rs.getInt(1));
+            e.setName(rs.getString(2));
+            e.setSalary(rs.getFloat(7));
+            list.add(e);
+        }
+        con.close();
+    } catch (Exception e) {
+        System.out.println(e);
+    }
+    return list;
+}
+}
+======================================================================================================
+<%@page import="com.test.dao.UserDAO"%>
+<jsp:useBean id="u" class="com.test.bean.UserBean"></jsp:useBean>
+<jsp:setProperty property="*" name="u"/>
+
+<%
+int i=UserDAO.save(u);
+if(i>0){
+response.sendRedirect("AddUserSuccess.jsp");
+}else{
+response.sendRedirect("errorPage.jsp");
+}
+%>
+======================================================================================================
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title> Registration</title>
+</head>
+<body>
+     <%@ include file="header.html" %>  <br>
+
+<jsp:include page="userForm.html"></jsp:include>
+
+</body>
+</html>
+======================================================================================================
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Add User Success</title>
+</head>
+<body>
+<%@ include file="header.html" %>
+
+<p>Record successfully saved!</p>
+<jsp:include page="userForm.html"></jsp:include>
+
+</body>
+</html>
+======================================================================================================
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Add User Success</title>
+</head>
+<body bgcolor>
+<%@ include file="header.html" %>
+
+<p>Sorry, an error occurred!</p>
+<jsp:include page="userForm.html"></jsp:include>
+
+</body>
+</html>
+============================================================================================
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style> 
+            #navigation ul li{
+                display: inline-block;
+                padding: 0px 5px;
+            }
+            #navigation ul li a{
+                color:#fff;
+                text-decoration: none;
+            }
+            #navigation {
+                background: #4062b7;
+                padding: 3px
+            }
+        </style>
+    </head>
+    <body bgcolor="grey">
+        <div id="header">
+            <div class="shell">
+<div id="navigation">
+                    <ul>
+                        <li><a href="index.jsp" class="active">Home</a></li>
+                        <li><a      href="paginationPage.jsp?page=1">Pagination</a></li>
+                        <li><a href="viewUsers.jsp">View Employees</a></li>
+                        <li><a href="addUserForm.jsp">Add Employees</a></li>
+
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>
+======================================================================================================
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style> 
+            #navigation ul li{
+                display: inline-block;
+                padding: 0px 5px;
+            }
+            #navigation ul li a{
+                color:#fff;
+                text-decoration: none;
+            }
+            #navigation {
+                background: #4062b7;
+                padding: 3px
+            }
+        </style>
+    </head>
+    <body bgcolor="grey">
+        <div id="header">
+            <div class="shell">
+<div id="navigation">
+                    <ul>
+                        <li><a href="index.jsp" class="active">Home</a></li>
+                        <li><a      href="paginationPage.jsp?page=1">Pagination</a></li>
+                        <li><a href="viewUsers.jsp">View Employees</a></li>
+                        <li><a href="addUserForm.jsp">Add Employees</a></li>
+
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>
+======================================================================================================
+<%@page language="java" contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title> Welcome Page</title>
+    </head>
+    <body>
+        <%@ include file="header.html" %>  <br>
+        <a href="addUserForm.jsp">Add User</a>
+        <a href="viewUsers.jsp">View Users</a>
+    </body>
+</html>
+======================================================================================================
+<%@ page import="java.util.*,com.test.bean.UserBean, com.test.dao.UserDAO"%>  
+ <%@ include file="header.html" %>  <br>
+<%
+    String spageid = request.getParameter("page");
+    int pageid = Integer.parseInt(spageid);
+    int total = 2;
+    if (pageid == 1) {
+    } else {
+        pageid = pageid - 1;
+        pageid = pageid * total + 1;
+    }
+    List<UserBean> list = UserDAO.getRecords(pageid, total);
+
+    out.print("<h1>Page No: " + spageid + "</h1>");
+    out.print("<table border='1' cellpadding='4' width='60%'>");
+    out.print("<tr><th>Id</th><th>Name</th><th>Salary</th>");
+    for (UserBean e : list) {
+        out.print("<tr><td>"+e.getId()+"</td><td>"+e.getName() +"</td><td>"+e.getSalary                                 ()+"</td></tr> ");
+        
+}  
+out.print("</table>");
+%>  
+<a href="paginationPage.jsp?page=1">1</a>  
+<a href="paginationPage.jsp?page=2">2</a>  
+<a href="paginationPage.jsp?page=3">3</a>
+======================================================================================================
+<%@page import="com.test.dao.UserDAO"%>
+<jsp:useBean id="u" class="com.test.bean.UserBean"></jsp:useBean>
+<jsp:setProperty property="*" name="u"/>
+
+<%
+int i=UserDAO.update(u);
+response.sendRedirect("viewUsers.jsp");
+%>
+======================================================================================================
+<h1>Add New Employee</h1>
+<form action="addUser.jsp" method="post">
+<table>
+<tr><td>Name:</td><td><input type="text" name="name"/></td></tr>
+<tr><td>Password:</td><td><input type="password" name="password"/></td></tr>
+<tr><td>Email:</td><td><input type="email" name="email"/></td></tr>
+<tr><td>Salary:</td><td><input type="number" step="0.01" name="salary"/></td></tr>
+<tr><td>Sex:</td><td><input type="radio" name="sex" value="male"/>Male <input type="radio" name="sex" value="female"/>Female </td></tr>
+<tr><td>Country:</td><td>
+<select name="country" style="width:155px">
+<option>India</option>
+<option>New Zealand</option>
+<option>Srilanka</option>
+<option>Other</option>
+</select>
+</td></tr>
+<tr><td colspan="2"><input type="submit" value="Add User"/></td></tr>
+</table>
+</form>
+======================================================================================================
+<%@page import="com.test.bean.UserBean"%>
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+        <title>View Users</title>
+    </head>
+    <body bgcolor="grey">
+         <%@ include file="header.html" %>  <br>
+
+        <%@page import="com.test.dao.UserDAO, com.test.bean.UserBean,java.util.*"%>
+        <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+
+        <h1>Users List</h1>
+
+        <%
+            List<UserBean>list=UserDAO.getAllRecords();
+            request.setAttribute("list", list);
+        %>
+
+        
+<table border="1" width="90%">
+            <tr><th>Id</th><th>Name</th><th>Password</th><th>Email</th><th>Sex</th><th>Country</th><th>Salary</th><th>Edit</th><th>Delete</th></tr>
+                    <c:forEach items="${list}" var="u">
+                <tr><td>${u.getId()}</td><td>${u.getName()}</td><td>${u.getPassword()}</td><td>${u.getEmail()}</td><td>${u.getSex()}</td><td>${u.getCountry()}</td><td>${u.getSalary()}</td><td><a href="updateForm.jsp?id=${u.getId()}">Edit</a></td><td><a href="DeleteUser.jsp?id=${u.getId()}">Delete</a></td></tr>
+            </c:forEach>
+        </table>
+        <br/><a href="addUserForm.jsp">Add New User</a>
+
+    </body>
+</html>
+======================================================================================================
